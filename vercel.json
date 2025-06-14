@@ -3,6 +3,9 @@
   "functions": {
     "api/proxy.js": {
       "maxDuration": 30
+    },
+    "api/ogp.js": {
+      "maxDuration": 30
     }
   },
   "headers": [
