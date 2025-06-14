@@ -7,7 +7,7 @@ help: ## Show this help message
 
 # Development
 install: ## Install dependencies
-	npm install
+	@npm install
 
 dev: ## Start development server
 	vercel dev
