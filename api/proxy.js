@@ -38,19 +38,22 @@ export default async function handler(req, res) {
       headers: {}
     };
 
-    // Copy relevant headers (exclude host, connection, etc.)
-    const allowedHeaders = [
-      'content-type',
-      'authorization',
-      'x-api-key',
-      'x-requested-with',
-      'accept',
-      'accept-language',
-      'user-agent'
+    // Copy all headers except hop-by-hop headers (RFC 7230)
+    // These headers are connection-specific and should not be forwarded by proxies
+    const excludedHeaders = [
+      'host',                   // Target host conflicts with original host
+      'connection',             // HTTP connection management 
+      'upgrade',                // Protocol upgrade (WebSocket, etc.)
+      'keep-alive',             // Connection persistence management
+      'proxy-authenticate',     // Proxy authentication (internal use)
+      'proxy-authorization',    // Proxy authorization (internal use)
+      'te',                     // Transfer encoding negotiation
+      'trailer',                // Chunked encoding trailers
+      'transfer-encoding'       // Transfer method specification
     ];
 
     Object.keys(req.headers).forEach(key => {
-      if (allowedHeaders.includes(key.toLowerCase())) {
+      if (!excludedHeaders.includes(key.toLowerCase())) {
         fetchOptions.headers[key] = req.headers[key];
       }
     });
