@@ -108,3 +108,7 @@ info: ## Show environment information
 # Logs
 logs: ## Show Vercel deployment logs
 	vercel logs
+
+# Redeploy (useful after fixing configuration)
+redeploy: ## Redeploy to existing Vercel project
+	vercel --prod --force
