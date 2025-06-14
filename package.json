@@ -1,0 +1,18 @@
+{
+  "name": "cors-proxy",
+  "version": "1.0.0",
+  "description": "Simple CORS proxy server for API requests",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "start": "node api/proxy.js"
+  },
+  "keywords": ["cors", "proxy", "api", "vercel"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
