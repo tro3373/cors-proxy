@@ -19,10 +19,6 @@ export default async function handler(req, res) {
       url = req.body.url;
     }
     
-    console.log('Received URL parameter:', url);
-    console.log('Request method:', req.method);
-    console.log('Request headers:', req.headers);
-    console.log('Request body:', req.body);
     
     if (!url) {
       return res.status(400).json({ 
@@ -95,15 +91,8 @@ export default async function handler(req, res) {
     }
 
     // Make the request
-    console.log('Making request to:', targetUrl.toString());
-    console.log('Fetch options:', JSON.stringify(fetchOptions, null, 2));
-    
     const response = await fetch(targetUrl.toString(), fetchOptions);
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    
     const data = await response.text();
-    console.log('Response data:', data.substring(0, 200) + (data.length > 200 ? '...' : ''));
 
     // Set response headers
     res.status(response.status);
