@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       headers: {}
     };
 
-    // Copy all headers except hop-by-hop headers (RFC 7230)
+    // Copy all headers except hop-by-hop headers (RFC 7230) and platform-specific headers
     // These headers are connection-specific and should not be forwarded by proxies
     const excludedHeaders = [
       'host',                   // Target host conflicts with original host
@@ -59,7 +59,22 @@ export default async function handler(req, res) {
       'proxy-authorization',    // Proxy authorization (internal use)
       'te',                     // Transfer encoding negotiation
       'trailer',                // Chunked encoding trailers
-      'transfer-encoding'       // Transfer method specification
+      'transfer-encoding',      // Transfer method specification
+      // Vercel/platform specific headers
+      'x-vercel-id',
+      'x-vercel-deployment-url',
+      'x-vercel-forwarded-for',
+      'x-vercel-proxy-signature',
+      'x-vercel-proxy-signature-ts',
+      'x-vercel-oidc-token',
+      'forwarded',
+      'x-forwarded-host',
+      'x-forwarded-for',
+      'x-forwarded-proto',
+      // CloudFlare headers
+      'cf-ray',
+      'cf-visitor',
+      'cf-connecting-ip'
     ];
 
     Object.keys(req.headers).forEach(key => {
@@ -68,8 +83,10 @@ export default async function handler(req, res) {
       }
     });
 
-    // Set appropriate headers for API requests
-    fetchOptions.headers['user-agent'] = 'CORS-Proxy/1.0.0';
+    // Set appropriate headers for API requests - use original user-agent if available
+    if (!fetchOptions.headers['user-agent']) {
+      fetchOptions.headers['user-agent'] = req.headers['user-agent'] || 'CORS-Proxy/1.0.0';
+    }
 
     // Add request body for POST/PUT requests
     if (req.method === 'POST' || req.method === 'PUT') {
