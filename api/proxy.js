@@ -11,13 +11,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get target URL from query parameter
-    const { url } = req.query;
+    // Get target URL from query parameter or request body
+    let url = req.query.url;
+    
+    // If POST request, try to get URL from body
+    if (req.method === 'POST' && req.body && req.body.url) {
+      url = req.body.url;
+    }
+    
+    console.log('Received URL parameter:', url);
+    console.log('Request method:', req.method);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
     
     if (!url) {
       return res.status(400).json({ 
         error: 'Missing url parameter',
-        usage: 'GET /api/proxy?url=https://example.com/api/endpoint'
+        usage: 'GET /api/proxy?url=https://example.com/api/endpoint OR POST with {"url": "https://example.com/api/endpoint"}'
       });
     }
 
@@ -58,6 +68,9 @@ export default async function handler(req, res) {
       }
     });
 
+    // Set appropriate headers for API requests
+    fetchOptions.headers['user-agent'] = 'CORS-Proxy/1.0.0';
+
     // Add request body for POST/PUT requests
     if (req.method === 'POST' || req.method === 'PUT') {
       fetchOptions.body = JSON.stringify(req.body);
@@ -65,8 +78,15 @@ export default async function handler(req, res) {
     }
 
     // Make the request
+    console.log('Making request to:', targetUrl.toString());
+    console.log('Fetch options:', JSON.stringify(fetchOptions, null, 2));
+    
     const response = await fetch(targetUrl.toString(), fetchOptions);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
     const data = await response.text();
+    console.log('Response data:', data.substring(0, 200) + (data.length > 200 ? '...' : ''));
 
     // Set response headers
     res.status(response.status);
