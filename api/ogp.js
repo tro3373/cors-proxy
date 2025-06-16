@@ -56,30 +56,30 @@ export default async function handler(req, res) {
 
     const html = await response.text();
 
-    // Extract OGP image
+    // Extract OGP data
     const ogImage = extractOGPImage(html);
+    const ogTitle = extractOGPTitle(html);
+    const ogDescription = extractOGPDescription(html);
     
-    // Extract hero image as fallback
+    // Extract fallback data
     const heroImage = ogImage ? null : extractHeroImage(html);
+    const title = ogTitle || extractTitle(html);
+    const description = ogDescription || extractDescription(html);
 
     const imageUrl = ogImage || heroImage;
 
-    if (!imageUrl) {
-      return res.status(404).json({
-        error: 'No image found',
-        message: 'Could not find og:image or hero image on the page'
-      });
-    }
-
-    // Convert relative URLs to absolute URLs
-    const absoluteImageUrl = imageUrl.startsWith('http') 
-      ? imageUrl 
-      : new URL(imageUrl, targetUrl).toString();
-
     res.json({
       url: targetUrl.toString(),
-      image: absoluteImageUrl,
-      type: ogImage ? 'og:image' : 'hero'
+      title: title || null,
+      description: description || null,
+      image: imageUrl ? (imageUrl.startsWith('http') 
+        ? imageUrl 
+        : new URL(imageUrl, targetUrl).toString()) : null,
+      type: {
+        title: ogTitle ? 'og:title' : (title ? 'title' : null),
+        description: ogDescription ? 'og:description' : (description ? 'meta' : null),
+        image: ogImage ? 'og:image' : (heroImage ? 'hero' : null)
+      }
     });
 
   } catch (error) {
@@ -97,6 +97,42 @@ function extractOGPImage(html) {
                        html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
   
   return ogImageMatch ? ogImageMatch[1] : null;
+}
+
+function extractOGPTitle(html) {
+  // Look for og:title meta tag
+  const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
+                       html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["'][^>]*>/i);
+  
+  return ogTitleMatch ? ogTitleMatch[1] : null;
+}
+
+function extractOGPDescription(html) {
+  // Look for og:description meta tag
+  const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
+                      html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["'][^>]*>/i);
+  
+  return ogDescMatch ? ogDescMatch[1] : null;
+}
+
+function extractTitle(html) {
+  // First try to get the title tag
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  if (titleMatch) {
+    return titleMatch[1].trim();
+  }
+  
+  // Fallback to h1 tag
+  const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  return h1Match ? h1Match[1].trim() : null;
+}
+
+function extractDescription(html) {
+  // Look for meta description tag
+  const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
+                        html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["'][^>]*>/i);
+  
+  return metaDescMatch ? metaDescMatch[1] : null;
 }
 
 function extractHeroImage(html) {
