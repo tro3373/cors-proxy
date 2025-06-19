@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
   // Handle preflight requests
@@ -84,8 +84,8 @@ export default async function handler(req, res) {
       fetchOptions.headers['user-agent'] = req.headers['user-agent'] || 'CORS-Proxy/1.0.0';
     }
 
-    // Add request body for POST/PUT requests
-    if (req.method === 'POST' || req.method === 'PUT') {
+    // Add request body for POST/PUT/PATCH requests
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
       fetchOptions.body = JSON.stringify(req.body);
       fetchOptions.headers['content-type'] = 'application/json';
     }
